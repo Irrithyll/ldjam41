@@ -5,11 +5,14 @@ using UnityEngine;
 public class Bar : MonoBehaviour {
 
     private GameObject[] barSpots;
+    private GameObject[] standSpots;
     private GameObject[] spotOccupiers;
 
 	// Use this for initialization
 	void Start () {
         barSpots = findBarSpots();
+        standSpots = findStandSpots();
+        spotOccupiers = new GameObject[barSpots.Length];
 	}
 	
 	// Update is called once per frame
@@ -18,12 +21,16 @@ public class Bar : MonoBehaviour {
 	}
 
     private GameObject[] findBarSpots() {
-        GameObject[] childObjects = gameObject.GetComponents<GameObject>();
-        foreach (GameObject child in childObjects) {
+        List<GameObject> foundSpots = new List<GameObject>();
 
+        foreach (Transform child in gameObject.transform) {
+            if (child.gameObject.tag == "OrderSpot") {
+                foundSpots.Add(child.gameObject);
+            }
+            
         }
 
-        return null;
+        return foundSpots.ToArray();
     }
 
     public GameObject[] getRecieveSpots() {
@@ -31,15 +38,47 @@ public class Bar : MonoBehaviour {
     }
 
     public GameObject[] getStandSpots() {
-        return null;
+        return standSpots;
     }
 
-    public GameObject[] getVacantStandSpots() {
-        return null;
+    private GameObject[] findStandSpots() {
+        GameObject[] standSpots = new GameObject[barSpots.Length];
+        for (int i = 0; i < barSpots.Length; i++) {
+            GameObject barSpot = barSpots[i];
+            // find stand spot on bar spot
+            foreach (Transform child in barSpot.gameObject.transform) {
+                if (child.gameObject.tag == "StandSpot") {
+                    standSpots[i] = child.gameObject;
+                    break;
+                }
+
+            }
+        }
+
+        return standSpots;
     }
 
-    public GameObject getFirstVacantStandSpot() {
-        return null;
+    public int[] getVacantStandSpotIndices() {
+        List<int> vacantSpots = new List<int>();
+
+        for (int i = 0; i < standSpots.Length; i++) {
+            if (!isSpotOccupied(i)) {
+                vacantSpots.Add(i);
+            }
+        }
+
+        return vacantSpots.ToArray();
+    }
+
+    public int getFirstVacantStandSpotIndex() {
+        int result = -1;
+
+        int[] vacant = getVacantStandSpotIndices();
+        if (vacant != null && vacant.Length > 0) {
+            result = vacant[0];
+        }
+
+        return result;
     }
 
     public void occupySpot(int spotIndex, GameObject occupier) {
